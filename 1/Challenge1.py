@@ -8,7 +8,6 @@ Created on Wed Nov  6 10:15:38 2019
 import pandas as pd
 pd.set_option('display.max_columns', 500)
 import matplotlib.pyplot as plt
-import numpy as np
 
 indexUserID = lambda x: x.set_index('user_id', inplace = True)
 
