@@ -10,6 +10,7 @@ pd.options.display.max_columns = 500
 import matplotlib.pyplot as plt
 import sklearn.linear_model as lm
 from datetime import datetime
+import numpy as np
 
 #Read in data
 data = pd.read_csv('C:\\Users\\Nick\\Documents\\GitHub\\DataScienceChallenges\\2\\ad_table.csv')
@@ -41,5 +42,12 @@ plt.show()
 line = lm.LinearRegression()
 line.fit(data['date_as_day'].values.reshape(-1, 1), 
          data['shown'].cumsum().values.reshape(-1, 1))
+yPred = line.predict(np.arange(327, 365, 1).reshape(-1, 1))
+plt.figure(figsize = (10, 10))
 
+#Plot original plus prediction
+plt.plot(np.append(data['date_as_day'], np.arange(327, 365)).reshape(-1, 1),
+         np.append(data['shown'].cumsum(), yPred))
+plt.xticks(rotation = -30)
+plt.show()
 
