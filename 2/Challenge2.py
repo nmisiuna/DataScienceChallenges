@@ -53,7 +53,7 @@ plt.show()
 
 #Now I really need to do this for each of the groups
 plt.figure(figsize = (10, 10))
-plt.xticks(rotation = -30)
+plt.xticks(rotation = -30) 
 for group in data['ad'].unique():
     df = data.loc[data['ad'] == group, :]
     line = lm.LinearRegression()
@@ -63,6 +63,11 @@ for group in data['ad'].unique():
     #Plot original plus prediction
     plt.plot(np.append(df['date_as_day'], np.arange(327, 365)),
              np.append(df['shown'].cumsum(), yPred))
+    
+    #If we only want the specific date it said
+    yPred = line.predict(np.array(pd.Timestamp(2015, 11, 25, 0, 0).dayofyear).reshape(-1, 1))
+    print(group + ': ' + str(yPred[0, 0]))
 
 plt.show()
+
 
