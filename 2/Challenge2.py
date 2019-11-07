@@ -81,7 +81,7 @@ for group in data['ad'].unique():
     line = lm.LinearRegression()
     line.fit(df['date_as_day'].values.reshape(-1, 1),
              df['avg_cost_per_click'].values.reshape(-1, 1))
-    groupCoef[group] = line.coef_
+    groupCoef[group] = line.coef_[0, 0]
     
 plt.show()
 
@@ -103,3 +103,39 @@ for j in [i for i in groupCoef.keys() if groupCoef[i] < -0.005]:
 print('Flat cost: ')
 for j in [i for i in groupCoef.keys() if (groupCoef[i] > -0.005) and (groupCoef[i] < 0.004)]:
     print(j)
+    
+#Try k-means on the coefficients
+from sklearn.cluster import KMeans
+km = KMeans(3)
+km.fit(np.array(list(groupCoef.values())).reshape(-1, 1))
+#Now print each of the ad groups in each cluster
+
+plt.figure(figsize = (10, 10))
+plt.xticks(rotation = -30)
+colorDict = {0: 'red', 1:'blue', 2:'green'}
+for label in set(km.labels_):
+    #Get indices
+    print('Cluster: ' + str(label))
+    print('Center: ' + str(km.cluster_centers_[label]))
+    if (km.cluster_centers_[label] == min(km.cluster_centers_)):
+        print('Decreasing')
+    elif (km.cluster_centers_[label] == max(km.cluster_centers_)):
+        print('Increasing')
+    else:
+        print('Flat')
+    temp = [i for i in range(len(km.labels_)) if km.labels_[i] == label]
+    z = [list(groupCoef.keys())[i] for i in temp]
+    for i in z:
+        print(i)
+    plt.scatter([groupCoef[i] for i in z], np.ones(len(z)), color = colorDict[label])
+plt.show()
+
+#Plot the original coefficient scatter plot along with the cluster centers for 
+#better visualization
+plt.figure(figsize = (10, 10))
+plt.xticks(rotation = -30)
+#plt.scatter(groupCoef.values(), [1 for i in range(len(groupCoef.values()))])
+plt.scatter(groupCoef.values(), np.ones(len(groupCoef.values())))
+plt.scatter(km.cluster_centers_, np.ones(3), color = 'red')
+plt.show()
+
