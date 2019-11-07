@@ -65,9 +65,41 @@ for group in data['ad'].unique():
              np.append(df['shown'].cumsum(), yPred))
     
     #If we only want the specific date it said
-    yPred = line.predict(np.array(pd.Timestamp(2015, 11, 25, 0, 0).dayofyear).reshape(-1, 1))
-    print(group + ': ' + str(yPred[0, 0]))
+    yPred = line.predict(np.array([pd.Timestamp(2015, 11, 25, 0, 0).dayofyear, pd.Timestamp(2015, 11, 24, 0, 0).dayofyear]).reshape(-1, 1))
+    print(group + ': ' + str(yPred[0, 0] - yPred[1, 0]))
 
 plt.show()
 
+#Want to find if avg_cost_per_click is down/up/flat
+#Just fit a line and look at coefficient
+groupCoef = {}
+plt.figure(figsize = (10, 10))
+plt.xticks(rotation = -30)
+for group in data['ad'].unique():
+    df = data.loc[data['ad'] == group, :]
+    plt.plot(df['date'], df['avg_cost_per_click'])
+    line = lm.LinearRegression()
+    line.fit(df['date_as_day'].values.reshape(-1, 1),
+             df['avg_cost_per_click'].values.reshape(-1, 1))
+    groupCoef[group] = line.coef_
+    
+plt.show()
 
+#Now cluster on coef
+#First let's just look at it
+plt.figure(figsize = (10, 10))
+plt.xticks(rotation = -30)
+#plt.scatter(groupCoef.values(), [1 for i in range(len(groupCoef.values()))])
+plt.scatter(groupCoef.values(), np.ones(len(groupCoef.values())))
+plt.show()
+#Looking at the figure, make a cut off at 0.004 for positive and -0.005 for negative
+print('Increasing cost: ')
+for j in [i for i in groupCoef.keys() if groupCoef[i] > 0.004]:
+    print(j)
+print('Decreasing cost: ')
+
+for j in [i for i in groupCoef.keys() if groupCoef[i] < -0.005]:
+    print(j)
+print('Flat cost: ')
+for j in [i for i in groupCoef.keys() if (groupCoef[i] > -0.005) and (groupCoef[i] < 0.004)]:
+    print(j)
