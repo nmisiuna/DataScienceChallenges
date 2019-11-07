@@ -29,6 +29,6 @@ print((adGroupsAgg['total_revenue']['sum'] /
 
 #Now predict through december
 plt.figure(figsize = (10, 10))
-plt.plot(data['date'], data['shown'])
+plt.plot(data['date'], data['shown'].cumsum())
 plt.xticks(rotation = -30)
 plt.show()
