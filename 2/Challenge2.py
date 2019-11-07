@@ -51,3 +51,18 @@ plt.plot(np.append(data['date_as_day'], np.arange(327, 365)).reshape(-1, 1),
 plt.xticks(rotation = -30)
 plt.show()
 
+#Now I really need to do this for each of the groups
+plt.figure(figsize = (10, 10))
+plt.xticks(rotation = -30)
+for group in data['ad'].unique():
+    df = data.loc[data['ad'] == group, :]
+    line = lm.LinearRegression()
+    line.fit(df['date_as_day'].values.reshape(-1, 1), 
+             df['shown'].cumsum().values.reshape(-1, 1))
+    yPred = line.predict(np.arange(327, 365, 1).reshape(-1, 1))    
+    #Plot original plus prediction
+    plt.plot(np.append(df['date_as_day'], np.arange(327, 365)),
+             np.append(df['shown'].cumsum(), yPred))
+
+plt.show()
+
