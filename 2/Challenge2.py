@@ -10,9 +10,12 @@ pd.options.display.max_columns = 500
 import matplotlib.pyplot as plt
 import sklearn.linear_model as lm
 import numpy as np
+from statsmodels.tsa.arima_model import ARIMA
+
+from pandas.plotting import autocorrelation_plot
 
 #Read in data
-data = pd.read_csv('C:\\Users\\Nick\\Documents\\GitHub\\DataScienceChallenges\\2\\ad_table.csv')
+data = pd.read_csv('C:\\Users\\s0159480\\Documents\\GitHub\\DataScienceChallenges\\2\\ad_table.csv')
 
 #Pre-process
 data['date'] = pd.to_datetime(data['date'], format = '%Y-%m-%d')
@@ -138,3 +141,36 @@ plt.scatter(groupCoef.values(), np.ones(len(groupCoef.values())))
 plt.scatter(km.cluster_centers_, np.ones(3), color = 'red')
 plt.show()
 
+#Now let's do an ARIMA model on cumulative shown
+for group in data['ad'].unique():
+    df = data.loc[data['ad'] == group, :]
+plt.figure(figsize = (10, 10))
+autocorrelation_plot(df['shown'])
+plt.show()
+
+model = ARIMA(df['shown'], order = (5, 1, 0))
+modelFit = model.fit(disp = 0)
+residuals = pd.DataFrame(modelFit.resid)
+residuals.plot(kind = 'kde')
+plt.show() #Can see it's bi-modal.  ARIMA sucks for this.
+
+plt.figure(figsize = (10, 10))
+modelFit.plot_predict(dynamic = False)
+plt.show()
+
+#Try this for avg_cost_per_click
+for group in data['ad'].unique():
+    df = data.loc[data['ad'] == group, :]
+plt.figure(figsize = (10, 10))
+autocorrelation_plot(df['avg_cost_per_click'])
+plt.show()
+
+model = ARIMA(df['avg_cost_per_click'], order = (5, 1, 0))
+modelFit = model.fit(disp = 0)
+residuals = pd.DataFrame(modelFit.resid)
+residuals.plot(kind = 'kde')
+plt.show() #It's zero mean, so the residuals aren't terrible.  Not normally distributed, however
+
+plt.figure(figsize = (10, 10))
+modelFit.plot_predict(dynamic = False)
+plt.show()
