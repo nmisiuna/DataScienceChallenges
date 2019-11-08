@@ -9,7 +9,6 @@ import pandas as pd
 pd.options.display.max_columns = 500
 import matplotlib.pyplot as plt
 import sklearn.linear_model as lm
-from datetime import datetime
 import numpy as np
 
 #Read in data
