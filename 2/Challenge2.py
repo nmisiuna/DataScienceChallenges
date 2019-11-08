@@ -67,7 +67,8 @@ for group in data['ad'].unique():
              np.append(df['shown'].cumsum(), yPred))
     
     #If we only want the specific date it said
-    yPred = line.predict(np.array([pd.Timestamp(2015, 11, 25, 0, 0).dayofyear, pd.Timestamp(2015, 11, 24, 0, 0).dayofyear]).reshape(-1, 1))
+#    yPred = line.predict(np.array([pd.Timestamp(2015, 12, 15, 0, 0).dayofyear, pd.Timestamp(2015, 11, 24, 0, 0).dayofyear]).reshape(-1, 1))
+    yPred = line.predict(np.array([pd.Timestamp(2015, 12, 15, 0, 0).dayofyear, pd.Timestamp(2015, 12, 14, 0, 0).dayofyear]).reshape(-1, 1))
     print(group + ': ' + str(yPred[0, 0] - yPred[1, 0]))
 
 plt.show()
@@ -141,9 +142,11 @@ plt.scatter(groupCoef.values(), np.ones(len(groupCoef.values())))
 plt.scatter(km.cluster_centers_, np.ones(3), color = 'red')
 plt.show()
 
-#Now let's do an ARIMA model on cumulative shown
+#Now let's do an ARIMA model on shown
+#I'm not doing any parameter tuning, which absolutely would help
 for group in data['ad'].unique():
     df = data.loc[data['ad'] == group, :]
+    df.set_index('date_as_day', inplace = True)
 plt.figure(figsize = (10, 10))
 autocorrelation_plot(df['shown'])
 plt.show()
@@ -152,11 +155,28 @@ model = ARIMA(df['shown'], order = (5, 1, 0))
 modelFit = model.fit(disp = 0)
 residuals = pd.DataFrame(modelFit.resid)
 residuals.plot(kind = 'kde')
-plt.show() #Can see it's bi-modal.  ARIMA sucks for this.
+plt.show() #Can see it's bi-modal, but mostly zero-mean
 
 plt.figure(figsize = (10, 10))
 modelFit.plot_predict(dynamic = False)
 plt.show()
+#This actually doesn't do half-bad!  It would probably suck if used
+#to predict out to December, however
+#Let's try that
+fc, sc, conf = modelFit.forecast(pd.Timestamp(2015, 12, 15, 0, 0).dayofyear - df.index.max())
+temp = range(df.index.max(), pd.Timestamp(2015, 12, 15, 0, 0).dayofyear)
+fcSeries = pd.Series(fc, index = temp)
+lowerSeries = pd.Series(conf[:, 0], index = temp)
+upperSeries = pd.Series(conf[:, 1], index = temp)
+
+plt.figure(figsize = (10, 10))
+plt.plot(df['shown'], label = 'training')
+plt.plot(fcSeries, label = 'forecast')
+plt.fill_between(lowerSeries.index, lowerSeries, upperSeries, color = 'k', alpha = 0.15)
+plt.title('Forecast')
+plt.legend(loc = 'upper left')
+plt.show()
+
 
 #Try this for avg_cost_per_click
 for group in data['ad'].unique():
@@ -174,3 +194,4 @@ plt.show() #It's zero mean, so the residuals aren't terrible.  Not normally dist
 plt.figure(figsize = (10, 10))
 modelFit.plot_predict(dynamic = False)
 plt.show()
+#This one, however, is garbage.
