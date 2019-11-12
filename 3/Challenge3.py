@@ -107,3 +107,11 @@ print(temp.sort_values('Coefficient', ascending = False))
 #Wed/Thur/Tue/Mon are good days to send emails on.  The rest are not
 #A personalized email is better than generic, and short is better than long
 
+#Let's do some more investigating 
+pd.pivot_table(emails, values = 'clicked', columns = 'user_past_purchases', aggfunc = sum)
+temp = emails.loc[emails['user_past_purchases'] < 17]
+pd.pivot_table(temp, values = 'clicked', columns = 'user_past_purchases', aggfunc = 'count') 
+
+
+
+
