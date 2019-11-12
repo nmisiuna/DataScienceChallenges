@@ -14,6 +14,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.model_selection import cross_val_score, cross_val_predict
 from sklearn.metrics import confusion_matrix
 from sklearn.ensemble import GradientBoostingClassifier as GBC
+import numpy as np
 
 emails = pd.read_csv('C:\\Users\\Nick\\Documents\\GitHub\\DataScienceChallenges\\3\\email_table.csv')
 opened = pd.read_csv('C:\\Users\\Nick\\Documents\\GitHub\\DataScienceChallenges\\3\\email_opened_table.csv')
@@ -107,5 +108,29 @@ print(temp.sort_values('Coefficient', ascending = False))
 #Wed/Thur/Tue/Mon are good days to send emails on.  The rest are not
 #A personalized email is better than generic, and short is better than long
 
+#Hour still isn't handled correctly.  It's not truly a numerical variable
+#Let's transform it into night and day
+emails['hour_cat'] = None
+emails.loc[(emails['hour'] < 8) | (emails['hour'] > 17), 'hour_cat'] = 'night'
+emails.loc[(emails['hour'] >= 8) & (emails['hour'] <= 17), 'hour_cat'] = 'day'
 
+temp = emails[['email_text', 'email_version', 'hour_cat', 'weekday', 'user_country']]
+temp = pd.get_dummies(temp)
+X = temp.join(emails[['user_past_purchases']])
+#scaler = MinMaxScaler()
+#XNorm = scaler.fit_transform(X)  #If we don't scale we can't really interpret coefficients
+y = emails['clicked']
 
+model = lm.LogisticRegression(class_weight = 'balanced')
+out = model.fit(X, y) #XNorm
+y_pred = cross_val_predict(model, X, y, cv = 10)
+conf = pd.crosstab(y, y_pred, rownames = ['True'], colnames = ['Predicted'], margins = True)
+print(conf)
+temp = pd.DataFrame(columns = ['Feature', 'Odds', 'Prob'])
+temp['Feature'] = X.columns
+temp['Odds'] = np.exp(out.coef_[0])
+temp['Prob'] = np.exp(out.coef_[0]) / (np.exp(out.coef_[0]) + 1)
+print('Odds:')
+print(temp.sort_values('Odds', ascending = False))
+#Now I think we've captured the full story on things
+#This answers most of the remaining questions from this challenge as well
