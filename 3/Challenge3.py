@@ -73,7 +73,7 @@ print(conf)
 XTrain, XTest, yTrain, yTest = train_test_split(X, y)
 scaler = MinMaxScaler()
 XTrain = scaler.fit_transform(XTrain)
-X = scaler.fit_transform(X) #Won't do much since it's not really continuous data
+X = scaler.fit_transform(X)
 model = GBC(n_estimators = 100, min_samples_split = 0.01, min_samples_leaf = 50)
 model.fit(XTrain, yTrain)
 model.score(XTest, yTest)
@@ -86,19 +86,24 @@ print(conf)
 #Therefore, we really want to understand how the features work together
 
 
-
-
-
-
-
-
-
-
-
-
 #Let's investigate our model somewhat to see what the coefficients are
-out = model.fit(X, y)
-for i in range(len(X.columns)):
-    print('{a:s}: {b:2.2f}'.format(a = X.columns[i], b = out.coef_[0][i]))
-    
-    
+temp = emails[['email_text', 'email_version', 'hour', 'weekday', 'user_country']]
+temp = pd.get_dummies(temp)
+X = temp.join(emails[['user_past_purchases']])
+scaler = MinMaxScaler()
+XNorm = scaler.fit_transform(X)  #If we don't scale we can't really interpret coefficients
+y = emails['clicked']
+
+model = lm.LogisticRegression(class_weight = 'balanced')
+out = model.fit(XNorm, y)
+temp = pd.DataFrame(columns = ['Feature', 'Coefficient'])
+temp['Feature'] = X.columns
+temp['Coefficient'] = out.coef_[0]
+print(temp.sort_values('Coefficient', ascending = False))
+#This tells us a lot more
+#These coefficients now have a lot of meaning
+#user_past_purchases is the most important feature by far
+#UK and US users are much more likely to click than ES and FR
+#Wed/Thur/Tue/Mon are good days to send emails on.  The rest are not
+#A personalized email is better than generic, and short is better than long
+
