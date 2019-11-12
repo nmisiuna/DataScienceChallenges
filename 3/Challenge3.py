@@ -11,7 +11,8 @@ import prince
 import sklearn.linear_model as lm
 from sklearn.preprocessing import OneHotEncoder as OHE
 from sklearn.model_selection import train_test_split
-from sklearn.model_selection import cross_val_score
+from sklearn.model_selection import cross_val_score, cross_val_predict
+from sklearn.metrics import confusion_matrix
 
 emails = pd.read_csv('C:\\Users\\Nick\\Documents\\GitHub\\DataScienceChallenges\\3\\email_table.csv')
 opened = pd.read_csv('C:\\Users\\Nick\\Documents\\GitHub\\DataScienceChallenges\\3\\email_opened_table.csv')
@@ -33,17 +34,12 @@ print('Percent clicked (who opened): {f:2.2f}%'.format(f =
 #Let's try MCA
 mca = prince.MCA(n_components = 2)
 mca = mca.fit(emails.astype('object'))
-ax = mca.plot_coordinates(X=emails.drop('email_id', axis = 1).astype('object'),
+ax = mca.plot_coordinates(X=emails.astype('object'),
                           ax=None, figsize=(10, 10), show_row_points=False,
                           row_points_size=10, show_row_labels=False,
                           show_column_points=True, column_points_size=30,
                           show_column_labels=True, legend_n_cols=1)
 ax.get_figure()
-
-
-
-
-
 
 
 #logistic regression
@@ -52,10 +48,18 @@ temp = pd.get_dummies(temp)
 X = temp.join(emails['user_past_purchases'])
 y = emails['clicked']
 
-
-#XTrain, XTest, yTrain, yTest = train_test_split(X, y)
-
 #I'd like to do this with cross validation
+#XTrain, XTest, yTrain, yTest = train_test_split(X, y)
 model = lm.LogisticRegression()
 scores = cross_val_score(model, X, y, cv = 10)
+#Works pretty good!
+#What about confusion matrix
+y_pred = cross_val_predict(model, X, y, cv = 10)
+conf = confusion_matrix(y, y_pred)
+for i in range(len(conf)):
+    conf[i] = conf[i] / sum(conf[i])
 
+#Let's investigate our model somewhat to see what the coefficients are
+out = model.fit(X, y)
+for i in range(len(X.columns)):
+    print('{a:s}: {b:2.2f}'.format(a = X.columns[i], b = out.coef_[0][i]))
