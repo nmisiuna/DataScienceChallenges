@@ -85,3 +85,5 @@ print('Next song = ' + NextSong('Hey Jude'))
 
 #Setting up a test to see if this works well would be to see if the number of song skips
 #has increased after implementing this method
+
+#This challenge was dumb and didn't involve much data science.  Was a dumb algorithm
