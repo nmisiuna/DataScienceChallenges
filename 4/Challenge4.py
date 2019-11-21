@@ -61,8 +61,9 @@ def NextSong(currSong):
                 temp[song] += 1
             else:
                 temp[song] = 1
-    #if empty dictionary just pick any song randomly from the overall distribution
+    #This is a dictionary (histogram) that could be maintained in real time
     
+    #if empty dictionary just pick any song randomly from the overall distribution
     if not temp:
         return(df['song_played'].sample(n = 1).values[0]) #This is inefficient
         #Better way would be to keep a histogram of songs and update it real time
@@ -77,3 +78,10 @@ print('Next song = ' + NextSong('Hey Jude'))
 #Things to consider that I'm not doing:
 #1. Should not consider next song if time different between next and current is too large
 #2. Returning the same song can lead to an infinite loop if this is actually used for recommendations
+#3. My implementation does not address the question, which is user specific
+# Being user specific would lead to a whole lot of cases of a pointless result, as the user
+# may have only listened to it once.  Dumb idea imo.  Mine is generalized and could easily
+# be tailed to narrow in on only the specific user (one additional line to scrub df)
+
+#Setting up a test to see if this works well would be to see if the number of song skips
+#has increased after implementing this method
